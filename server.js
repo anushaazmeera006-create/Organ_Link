@@ -11,6 +11,12 @@ const SECRET = "organ_secret_key_123";
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+app.use(express.static(__dirname));
+
+// Serve index.html for root route
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 
 // --- Middleware ---
 const authenticate = (req, res, next) => {
