@@ -115,4 +115,10 @@ async function startServer() {
     }
 }
 
-startServer();
+// Only start server if not running in Vercel
+if (require.main === module) {
+    startServer();
+}
+
+// Export for Vercel
+module.exports = app;
