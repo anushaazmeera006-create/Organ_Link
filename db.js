@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const connectionString = process.env.DATABASE_URL || 
-    'postgresql://neondb_owner:npg_eKb2US7WvRfY@ep-still-meadow-b72bil6d.c-13.us-east-1.aws.neon.tech/neondb?sslmode=require';
+    'postgresql://neondb_owner:npg_eKb2US7WvRfY@ep-still-meadow-b72bil6d-pooler.c-13.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
 
 const pool = new Pool({
     connectionString: connectionString,

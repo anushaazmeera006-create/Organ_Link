@@ -2,9 +2,9 @@
   "name": "organ-system",
   "version": "1.0.0",
   "description": "Organ Donation and Procurement Management System",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
