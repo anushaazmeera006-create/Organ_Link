@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrganLink - Organ Donation Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        :root {
+            --navy-blue: #0B1F3A;
+            --medical-blue: #6CA6CD;
+            --light-cream: #FFFDF7;
+            --white: #FFFFFF;
+            --teal: #2A9D8F;
+            --soft-green: #88B04B;
+        }
+        body {
+            background-color: var(--light-cream);
+        }
+        .sidebar {
+            background: linear-gradient(180deg, var(--navy-blue) 0%, #1a3a5c 100%);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .nav-item {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        .nav-item:hover {
+            background: rgba(107, 166, 205, 0.2);
+            transform: translateX(5px);
+        }
+        .nav-item.active {
+            background: var(--teal);
+            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.4);
+        }
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, var(--white) 0%, #f8fafc 100%);
+            border: 1px solid rgba(107, 166, 205, 0.2);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--teal) 0%, #238b7d 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(42, 157, 143, 0.5);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--medical-blue) 0%, #5a8fb8 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(107, 166, 205, 0.4);
+        }
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--navy-blue) 0%, var(--medical-blue) 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+        .table-container {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .table-header {
+            background: linear-gradient(135deg, var(--navy-blue) 0%, #1a3a5c 100%);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .table-row:hover {
+            background-color: rgba(107, 166, 205, 0.05);
+        }
+        .input-field {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: var(--medical-blue);
+            box-shadow: 0 0 0 3px rgba(107, 166, 205, 0.2);
+            outline: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .counter {
+            transition: all 0.5s ease;
+        }
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(42, 157, 143, 0.4);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="sidebar w-64 min-h-screen fixed left-0 top-0 p-6 flex flex-col z-50">
+        <div class="mb-10">
+            <h1 class="text-white text-2xl font-bold flex items-center gap-3">
+                <i class="fas fa-heartbeat text-teal-400 text-3xl"></i>
+                <span>OrganLink</span>
+            </h1>
+            <p class="text-gray-300 text-sm mt-2">Procurement Management</p>
+        </div>
+        
+        <nav class="flex-1 space-y-2">
+            <a href="#" onclick="showPage('dashboard')" class="nav-item active flex items-center gap-3 px-4 py-3 text-white rounded-lg">
+                <i class="fas fa-th-large w-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" onclick="showPage('donors')" class="nav-item flex items-center gap-3 px-4 py-3 text-white rounded-lg">
+                <i class="fas fa-user-plus w-5"></i>
+                <span>Donors</span>
+            </a>
+            <a href="#" onclick="showPage('recipients')" class="nav-item flex items-center gap-3 px-4 py-3 text-white rounded-lg">
+                <i class="fas fa-user-injured w-5"></i>
+                <span>Recipients</span>
+            </a>
+            <a href="#" onclick="showPage('organs')" class="nav-item flex items-center gap-3 px-4 py-3 text-white rounded-lg">
+                <i class="fas fa-dna w-5"></i>
+                <span>Organs</span>
+            </a>
+            <a href="#" onclick="showPage('matching')" class="nav-item flex items-center gap-3 px-4 py-3 text-white rounded-lg">
+                <i class="fas fa-handshake w-5"></i>
+                <span>Matching</span>
+            </a>
+        </nav>
+        
+        <div class="mt-auto pt-6 border-t border-gray-600">
+            <div class="flex items-center gap-3 text-white">
+                <div class="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-sm">Admin User</p>
+                    <p class="text-gray-400 text-xs">System Administrator</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 ml-64 p-8">
+        <!-- Top Navigation -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800" id="page-title">Dashboard</h2>
+                <p class="text-gray-500 text-sm">Welcome back, Admin</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all">
+                    <i class="fas fa-bell text-gray-600"></i>
+                </button>
+                <button class="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all">
+                    <i class="fas fa-cog text-gray-600"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div id="main-section">
+            <div id="page-dashboard" class="page fade-in">
+                <!-- Welcome Banner -->
+                <div class="welcome-banner p-8 mb-8 text-white relative">
+                    <div class="relative z-10">
+                        <h1 class="text-3xl font-bold mb-2">Welcome to OrganLink</h1>
+                        <p class="text-gray-200">Your comprehensive organ donation management system</p>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-user-plus text-blue-600 text-xl"></i>
+                            </div>
+                            <span class="text-green-500 text-sm font-semibold"><i class="fas fa-arrow-up"></i> 12%</span>
+                        </div>
+                        <h3 class="text-gray-500 text-sm mb-1">Total Donors</h3>
+                        <p id="stat-donors" class="text-3xl font-bold text-gray-800 counter">0</p>
+                    </div>
+                    <div class="stat-card card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fas fa-user-injured text-green-600 text-xl"></i>
+                            </div>
+                            <span class="text-green-500 text-sm font-semibold"><i class="fas fa-arrow-up"></i> 8%</span>
+                        </div>
+                        <h3 class="text-gray-500 text-sm mb-1">Total Recipients</h3>
+                        <p id="stat-recipients" class="text-3xl font-bold text-gray-800 counter">0</p>
+                    </div>
+                    <div class="stat-card card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                <i class="fas fa-dna text-purple-600 text-xl"></i>
+                            </div>
+                            <span class="text-green-500 text-sm font-semibold"><i class="fas fa-arrow-up"></i> 15%</span>
+                        </div>
+                        <h3 class="text-gray-500 text-sm mb-1">Available Organs</h3>
+                        <p id="stat-organs" class="text-3xl font-bold text-gray-800 counter">0</p>
+                    </div>
+                    <div class="stat-card card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                <i class="fas fa-handshake text-red-600 text-xl"></i>
+                            </div>
+                            <span class="text-green-500 text-sm font-semibold"><i class="fas fa-arrow-up"></i> 20%</span>
+                        </div>
+                        <h3 class="text-gray-500 text-sm mb-1">Matches Made</h3>
+                        <p id="stat-matches" class="text-3xl font-bold text-gray-800 counter">0</p>
+                    </div>
+                </div>
+
+                <!-- Charts and Activity -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Blood Group Distribution</h3>
+                        <div id="blood-chart" class="h-64"></div>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Recent Activity</h3>
+                        <div id="activity-feed" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="page-donors" class="page hidden fade-in">
+                <div class="card p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Add New Donor</h3>
+                    <form onsubmit="addDonor(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Name</label>
+                            <input name="name" placeholder="Enter name" required class="input-field w-full p-3">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Age</label>
+                            <input name="age" type="number" placeholder="Age" required class="input-field w-full p-3">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Gender</label>
+                            <select name="gender" class="input-field w-full p-3">
+                                <option>Male</option>
+                                <option>Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Blood Group</label>
+                            <select name="blood_group" class="input-field w-full p-3">
+                                <option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Phone</label>
+                            <input name="phone" placeholder="Phone" class="input-field w-full p-3">
+                        </div>
+                        <div class="md:col-span-5">
+                            <button type="submit" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold">
+                                <i class="fas fa-plus mr-2"></i>Add Donor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Add Organ Section -->
+                <div class="card p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Add Organ for Donor</h3>
+                    <form onsubmit="addOrganFromForm(event)" class="flex gap-4">
+                        <div class="flex-1">
+                            <select name="donor_id" id="donor-select" class="input-field w-full p-3">
+                                <option value="">Select Donor</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <select name="organ_type" class="input-field w-full p-3">
+                                <option value="Kidney">Kidney</option>
+                                <option value="Heart">Heart</option>
+                                <option value="Liver">Liver</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-secondary text-white px-6 py-3 rounded-lg font-semibold">
+                            <i class="fas fa-dna mr-2"></i>Add Organ
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Donors Table -->
+                <div class="table-container">
+                    <div class="table-header p-4">
+                        <div class="flex justify-between items-center text-white">
+                            <h3 class="font-semibold">Donors List</h3>
+                            <div class="flex gap-4">
+                                <input type="text" id="donor-search" placeholder="Search donors..." onkeyup="filterDonors()" class="px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:outline-none focus:border-white/50">
+                                <select id="donor-filter-blood" onchange="filterDonors()" class="px-4 py-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none">
+                                    <option value="">All Blood Groups</option>
+                                    <option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Age</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Gender</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Blood Group</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="donor-list" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-recipients" class="page hidden fade-in">
+                <div class="card p-6 mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Add New Recipient</h3>
+                    <form onsubmit="addRecipient(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Name</label>
+                            <input name="name" placeholder="Enter name" required class="input-field w-full p-3">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Age</label>
+                            <input name="age" type="number" placeholder="Age" required class="input-field w-full p-3">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Gender</label>
+                            <select name="gender" class="input-field w-full p-3">
+                                <option>Male</option>
+                                <option>Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Blood Group</label>
+                            <select name="blood_group" class="input-field w-full p-3">
+                                <option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Phone</label>
+                            <input name="phone" placeholder="Phone" class="input-field w-full p-3">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Organ Needed</label>
+                            <select name="organ_needed" class="input-field w-full p-3">
+                                <option>Kidney</option>
+                                <option>Heart</option>
+                                <option>Liver</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600 mb-1">Urgency</label>
+                            <select name="urgency" class="input-field w-full p-3">
+                                <option value="1">Low (1)</option>
+                                <option value="2">Medium (2)</option>
+                                <option value="3">High (3)</option>
+                                <option value="4">Critical (4)</option>
+                                <option value="5">Emergency (5)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <button type="submit" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold">
+                                <i class="fas fa-plus mr-2"></i>Add Recipient
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Recipients Table -->
+                <div class="table-container">
+                    <div class="table-header p-4">
+                        <div class="flex justify-between items-center text-white">
+                            <h3 class="font-semibold">Recipients List</h3>
+                            <input type="text" id="recipient-search" placeholder="Search recipients..." onkeyup="filterRecipients()" class="px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:outline-none focus:border-white/50">
+                        </div>
+                    </div>
+                    <div class="bg-white">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Age</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Gender</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Blood Group</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Organ Needed</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Urgency</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recipient-list" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-organs" class="page hidden fade-in">
+                <div class="table-container">
+                    <div class="table-header p-4">
+                        <div class="flex justify-between items-center text-white">
+                            <h3 class="font-semibold">Available Organs</h3>
+                            <input type="text" id="organ-search" placeholder="Search organs..." onkeyup="filterOrgans()" class="px-4 py-2 rounded-lg bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:outline-none focus:border-white/50">
+                        </div>
+                    </div>
+                    <div class="bg-white">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Organ ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Organ Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Donor Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Expiry Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Time Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody id="organ-list" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-matching" class="page hidden fade-in">
+                <div class="card p-8 text-center mb-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Organ Allocation Matching</h3>
+                    <p class="text-gray-600 mb-6">Run the matching algorithm to find the best organ-recipient matches based on blood group compatibility, urgency level, and age difference.</p>
+                    <button onclick="runMatch()" class="btn-primary text-white px-8 py-4 rounded-full text-xl font-semibold pulse-animation">
+                        <i class="fas fa-heartbeat mr-2"></i>Run Matching Algorithm
+                    </button>
+                    <div id="match-result" class="mt-6 font-bold text-lg"></div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header p-4">
+                        <div class="flex justify-between items-center text-white">
+                            <h3 class="font-semibold">Potential Matches</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Organ Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Donor Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Donor Age</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Blood Group</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recipient Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recipient Age</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Urgency</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Age Difference</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Expiry Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="potential-list" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showDashboard() {
+            document.getElementById('main-section').classList.remove('hidden');
+            showPage('dashboard');
+        }
+
+        // Initialize dashboard on load with delay to ensure server is ready
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                showDashboard();
+                loadDashboard();
+            }, 1000);
+        });
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-' + page).classList.remove('hidden');
+            
+            // Update page title
+            const titles = {
+                'dashboard': 'Dashboard',
+                'donors': 'Donors Management',
+                'recipients': 'Recipients Management',
+                'organs': 'Available Organs',
+                'matching': 'Organ Matching'
+            };
+            document.getElementById('page-title').textContent = titles[page];
+            
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.nav-item')?.classList.add('active');
+            
+            if(page === 'dashboard') loadDashboard();
+            if(page === 'donors') loadDonors();
+            if(page === 'recipients') loadRecipients();
+            if(page === 'organs') loadOrgans();
+            if(page === 'matching') loadPotentialMatches();
+        }
+
+        async function loadDashboard() {
+            try {
+                // Show loading state
+                document.getElementById('stat-donors').textContent = 'Loading...';
+                document.getElementById('stat-recipients').textContent = 'Loading...';
+                document.getElementById('stat-organs').textContent = 'Loading...';
+                document.getElementById('stat-matches').textContent = 'Loading...';
+                
+                console.log('Loading dashboard data...');
+                const [donorsRes, recipientsRes, organsRes] = await Promise.all([
+                    fetch('/api/donors'),
+                    fetch('/api/recipients'),
+                    fetch('/api/organs')
+                ]);
+                
+                console.log('API responses received');
+                const donors = await donorsRes.json();
+                const recipients = await recipientsRes.json();
+                const organs = await organsRes.json();
+                
+                console.log('Data loaded:', { donors: donors.length, recipients: recipients.length, organs: organs.length });
+                
+                // If no data loaded, retry up to 5 times with 2-second intervals
+                if (donors.length === 0 && recipients.length === 0 && organs.length === 0) {
+                    console.log('No data loaded, retrying...');
+                    if (!window.dashboardRetries) window.dashboardRetries = 0;
+                    window.dashboardRetries++;
+                    
+                    if (window.dashboardRetries < 5) {
+                        document.getElementById('stat-donors').textContent = 'Loading...';
+                        document.getElementById('stat-recipients').textContent = 'Loading...';
+                        document.getElementById('stat-organs').textContent = 'Loading...';
+                        setTimeout(loadDashboard, 2000);
+                        return;
+                    } else {
+                        console.log('Max retries reached, showing empty dashboard');
+                        window.dashboardRetries = 0;
+                    }
+                } else {
+                    window.dashboardRetries = 0;
+                }
+                
+                // Update stats
+                document.getElementById('stat-donors').textContent = donors.length;
+                document.getElementById('stat-recipients').textContent = recipients.length;
+                document.getElementById('stat-organs').textContent = organs.length;
+                document.getElementById('stat-matches').textContent = recipients.filter(r => r.status === 'completed').length;
+                
+                // Blood group distribution chart
+                const bloodGroups = {};
+                donors.forEach(d => {
+                    bloodGroups[d.blood_group] = (bloodGroups[d.blood_group] || 0) + 1;
+                });
+                
+                const ctx = document.getElementById('blood-chart');
+                if (ctx.chart) ctx.chart.destroy();
+                ctx.chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(bloodGroups),
+                        datasets: [{
+                            label: 'Donors by Blood Group',
+                            data: Object.values(bloodGroups),
+                            backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+                
+                // Activity feed
+                const activityFeed = document.getElementById('activity-feed');
+                activityFeed.innerHTML = `
+                    <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-user-plus text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">${donors.length} Donors Registered</p>
+                            <p class="text-gray-500 text-xs">Total registered in system</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <i class="fas fa-user-injured text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">${recipients.length} Recipients Waiting</p>
+                            <p class="text-gray-500 text-xs">Awaiting organ transplants</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                            <i class="fas fa-dna text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">${organs.length} Organs Available</p>
+                            <p class="text-gray-500 text-xs">Ready for transplantation</p>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                alert('Failed to load dashboard data. Please check console for details.');
+            }
+        }
+
+        async function loadDonors() {
+            const res = await fetch('/api/donors', {headers: {}});
+            const data = await res.json();
+            document.getElementById('donor-list').innerHTML = data.map(d => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${d.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.age}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.gender}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            ${d.blood_group}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.phone}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            ${d.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="addOrgan(${d.donor_id})" class="text-blue-600 hover:text-blue-900">Add Organ</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Populate donor select dropdown for organ addition
+            document.getElementById('donor-select').innerHTML = '<option value="">Select Donor</option>' + 
+                data.map(d => `<option value="${d.donor_id}">${d.name} (${d.blood_group})</option>`).join('');
+        }
+
+        async function addDonor(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const donor = {
+                name: formData.get('name').trim(),
+                age: parseInt(formData.get('age')),
+                gender: formData.get('gender'),
+                blood_group: formData.get('blood_group'),
+                phone: formData.get('phone').trim()
+            };
+            
+            // Validation
+            if (!donor.name) {
+                alert('Please enter donor name');
+                return;
+            }
+            
+            if (!donor.age || donor.age < 1 || donor.age > 120) {
+                alert('Please enter a valid age (1-120)');
+                return;
+            }
+            
+            if (!donor.phone) {
+                alert('Please enter phone number');
+                return;
+            }
+            
+            try {
+                // Check for duplicate donor
+                const res = await fetch('/api/donors', {headers: {}});
+                const existingDonors = await res.json();
+                
+                const isDuplicate = existingDonors.some(d => 
+                    d.name.toLowerCase() === donor.name.toLowerCase() && 
+                    d.phone === donor.phone
+                );
+                
+                if (isDuplicate) {
+                    alert('A donor with this name and phone number already exists!');
+                    return;
+                }
+                
+                // Add donor
+                const addRes = await fetch('/api/donors', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(donor)
+                });
+                
+                if (addRes.ok) {
+                    event.target.reset();
+                    loadDonors();
+                    alert("Donor Added!");
+                } else {
+                    const errorData = await addRes.json();
+                    alert(errorData.error || 'Failed to add donor');
+                }
+            } catch (error) {
+                alert('Failed to add donor. Please try again.');
+            }
+        }
+
+        async function addRecipient(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const recipient = {
+                name: formData.get('name').trim(),
+                age: parseInt(formData.get('age')),
+                gender: formData.get('gender'),
+                blood_group: formData.get('blood_group'),
+                phone: formData.get('phone').trim(),
+                organ_needed: formData.get('organ_needed'),
+                urgency: parseInt(formData.get('urgency'))
+            };
+            
+            // Validation
+            if (!recipient.name) {
+                alert('Please enter recipient name');
+                return;
+            }
+            
+            if (!recipient.age || recipient.age < 1 || recipient.age > 120) {
+                alert('Please enter a valid age (1-120)');
+                return;
+            }
+            
+            if (!recipient.phone) {
+                alert('Please enter phone number');
+                return;
+            }
+            
+            if (!recipient.organ_needed) {
+                alert('Please select organ needed');
+                return;
+            }
+            
+            if (!recipient.urgency || recipient.urgency < 1 || recipient.urgency > 5) {
+                alert('Please select urgency level');
+                return;
+            }
+            
+            try {
+                // Check for duplicate recipient
+                const res = await fetch('/api/recipients', {headers: {}});
+                const existingRecipients = await res.json();
+                
+                const isDuplicate = existingRecipients.some(r => 
+                    r.name.toLowerCase() === recipient.name.toLowerCase() && 
+                    r.phone === recipient.phone &&
+                    r.organ_needed === recipient.organ_needed
+                );
+                
+                if (isDuplicate) {
+                    alert('A recipient with this name, phone number, and organ needed already exists!');
+                    return;
+                }
+                
+                // Add recipient
+                const addRes = await fetch('/api/recipients', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(recipient)
+                });
+                
+                if (addRes.ok) {
+                    event.target.reset();
+                    loadRecipients();
+                    alert("Recipient Added!");
+                } else {
+                    const errorData = await addRes.json();
+                    alert(errorData.error || 'Failed to add recipient');
+                }
+            } catch (error) {
+                alert('Failed to add recipient. Please try again.');
+            }
+        }
+
+        async function loadRecipients() {
+            const res = await fetch('/api/recipients', {headers: {}});
+            const data = await res.json();
+            document.getElementById('recipient-list').innerHTML = data.map(r => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${r.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${r.age}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${r.gender}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            ${r.blood_group}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${r.organ_needed}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            r.urgency_level >= 4 ? 'bg-red-100 text-red-800' : 
+                            r.urgency_level >= 3 ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-green-100 text-green-800'
+                        }">
+                            ${r.urgency_level}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            r.status === 'waiting' ? 'bg-blue-100 text-blue-800' : 
+                            r.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                            'bg-gray-100 text-gray-800'
+                        }">
+                            ${r.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadOrgans() {
+            const res = await fetch('/api/organs', {headers: {}});
+            const organs = await res.json();
+            
+            // Get donor data for name lookup
+            const donorsRes = await fetch('/api/donors', {headers: {}});
+            const donors = await donorsRes.json();
+            
+            // Create donor lookup map
+            const donorMap = {};
+            donors.forEach(d => {
+                donorMap[d.donor_id] = d.name;
+            });
+            
+            const currentTime = new Date();
+            document.getElementById('organ-list').innerHTML = organs.map(o => {
+                const expiryTime = new Date(o.expiry_time);
+                const timeRemaining = expiryTime - currentTime;
+                const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
+                const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                
+                let timeRemainingText = '';
+                let timeClass = '';
+                if (timeRemaining <= 0) {
+                    timeRemainingText = 'Expired';
+                    timeClass = 'text-red-600 font-bold';
+                } else if (hoursRemaining < 2) {
+                    timeRemainingText = `${hoursRemaining}h ${minutesRemaining}m`;
+                    timeClass = 'text-red-500 font-semibold';
+                } else if (hoursRemaining < 6) {
+                    timeRemainingText = `${hoursRemaining}h ${minutesRemaining}m`;
+                    timeClass = 'text-yellow-600';
+                } else {
+                    timeRemainingText = `${hoursRemaining}h ${minutesRemaining}m`;
+                    timeClass = 'text-green-600';
+                }
+                
+                const donorName = donorMap[o.donor_id] || `Donor ${o.donor_id}`;
+                
+                return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${o.organ_id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                            ${o.organ_type}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${donorName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            o.availability_status === 'available' ? 'bg-green-100 text-green-800' : 
+                            o.availability_status === 'allocated' ? 'bg-blue-100 text-blue-800' : 
+                            'bg-red-100 text-red-800'
+                        }">
+                            ${o.availability_status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${expiryTime.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${timeClass}">${timeRemainingText}</td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        async function addOrganFromForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const organ = {
+                donor_id: parseInt(formData.get('donor_id')),
+                organ_type: formData.get('organ_type')
+            };
+            
+            // Validation
+            if (!organ.donor_id) {
+                alert('Please select a donor');
+                return;
+            }
+            
+            if (!organ.organ_type) {
+                alert('Please select organ type');
+                return;
+            }
+            
+            try {
+                // Check for duplicate organ
+                const res = await fetch('/api/organs', {headers: {}});
+                const existingOrgans = await res.json();
+                
+                const isDuplicate = existingOrgans.some(o => 
+                    o.donor_id === organ.donor_id && 
+                    o.organ_type === organ.organ_type &&
+                    o.availability_status === 'available'
+                );
+                
+                if (isDuplicate) {
+                    alert('This donor already has an available organ of this type!');
+                    return;
+                }
+                
+                // Add organ
+                const addRes = await fetch('/api/organs', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(organ)
+                });
+                
+                if (addRes.ok) {
+                    event.target.reset();
+                    loadOrgans();
+                    loadDonors();
+                    alert("Organ Added!");
+                } else {
+                    const errorData = await addRes.json();
+                    alert(errorData.error || 'Failed to add organ');
+                }
+            } catch (error) {
+                alert('Failed to add organ. Please try again.');
+            }
+        }
+
+        async function addOrgan(id) {
+            const type = prompt("Organ Type (Heart, Liver, Kidney)?");
+            if(!type) return;
+            
+            // Validate organ type
+            const validTypes = ['Heart', 'Liver', 'Kidney'];
+            if (!validTypes.includes(type)) {
+                alert('Invalid organ type. Please choose Heart, Liver, or Kidney.');
+                return;
+            }
+            
+            try {
+                // Check for duplicate organ
+                const res = await fetch('/api/organs', {headers: {}});
+                const existingOrgans = await res.json();
+                
+                const isDuplicate = existingOrgans.some(o => 
+                    o.donor_id === id && 
+                    o.organ_type === type &&
+                    o.availability_status === 'available'
+                );
+                
+                if (isDuplicate) {
+                    alert('This donor already has an available organ of this type!');
+                    return;
+                }
+                
+                const addRes = await fetch('/api/organs', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({donor_id: id, organ_type: type})
+                });
+                
+                if (addRes.ok) {
+                    loadOrgans();
+                    loadDonors();
+                    alert("Organ Added!");
+                } else {
+                    const errorData = await addRes.json();
+                    alert(errorData.error || 'Failed to add organ');
+                }
+            } catch (error) {
+                alert('Failed to add organ. Please try again.');
+            }
+        }
+
+        async function runMatch() {
+            const res = await fetch('/api/run-match', {
+                method: 'POST',
+                headers: {}
+            });
+            const data = await res.json();
+            document.getElementById('match-result').innerText = data.result === 'SUCCESS' ? "✅ Match Found and Allocated!" : "❌ No Compatible Match Found.";
+            loadPotentialMatches();
+        }
+
+        async function loadPotentialMatches() {
+            const res = await fetch('/api/potential-matches', {headers: {}});
+            const data = await res.json();
+            document.getElementById('potential-list').innerHTML = data.map(m => {
+                const expiryTime = new Date(m.expiry_time);
+                const currentTime = new Date();
+                const timeRemaining = expiryTime - currentTime;
+                const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
+                const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                
+                let urgencyClass = '';
+                let urgencyText = m.urgency_level;
+                if (m.urgency_level >= 4) {
+                    urgencyClass = 'bg-red-100 text-red-800';
+                    urgencyText = `${m.urgency_level} (Critical)`;
+                } else if (m.urgency_level >= 3) {
+                    urgencyClass = 'bg-yellow-100 text-yellow-800';
+                    urgencyText = `${m.urgency_level} (High)`;
+                } else {
+                    urgencyClass = 'bg-green-100 text-green-800';
+                    urgencyText = `${m.urgency_level} (Normal)`;
+                }
+                
+                return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                            ${m.organ_type}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${m.donor_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.donor_age}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            ${m.blood_group}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${m.recipient_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.recipient_age}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${urgencyClass}">
+                            ${urgencyText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="${m.age_diff > 15 ? 'text-red-600 font-semibold' : m.age_diff > 10 ? 'text-yellow-600' : 'text-green-600'}">
+                            ${m.age_diff} years
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="${hoursRemaining < 2 ? 'text-red-600 font-semibold' : hoursRemaining < 6 ? 'text-yellow-600' : 'text-green-600'}">
+                            ${hoursRemaining}h ${minutesRemaining}m
+                        </span>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        function logout() { localStorage.clear(); location.reload(); }
+
+        // Filter functions
+        function filterDonors() {
+            const searchTerm = document.getElementById('donor-search').value.toLowerCase();
+            const bloodFilter = document.getElementById('donor-filter-blood').value;
+            const rows = document.querySelectorAll('#donor-list tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[0]?.textContent.toLowerCase() || '';
+                const bloodGroup = row.cells[3]?.textContent || '';
+                
+                const matchesSearch = name.includes(searchTerm);
+                const matchesBlood = !bloodFilter || bloodGroup === bloodFilter;
+                
+                row.style.display = matchesSearch && matchesBlood ? '' : 'none';
+            });
+        }
+
+        function filterRecipients() {
+            const searchTerm = document.getElementById('recipient-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#recipient-list tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[0]?.textContent.toLowerCase() || '';
+                const organ = row.cells[4]?.textContent.toLowerCase() || '';
+                
+                const matchesSearch = name.includes(searchTerm) || organ.includes(searchTerm);
+                row.style.display = matchesSearch ? '' : 'none';
+            });
+        }
+
+        function filterOrgans() {
+            const searchTerm = document.getElementById('organ-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#organ-list tr');
+            
+            rows.forEach(row => {
+                const organType = row.cells[1]?.textContent.toLowerCase() || '';
+                const donorName = row.cells[2]?.textContent.toLowerCase() || '';
+                
+                const matchesSearch = organType.includes(searchTerm) || donorName.includes(searchTerm);
+                row.style.display = matchesSearch ? '' : 'none';
+            });
+        }
+
+        // Real-time alerts for expiring organs
+        function checkExpiringOrgans() {
+            const organs = document.querySelectorAll('#organ-list tr');
+            const currentTime = new Date();
+            let alertCount = 0;
+            
+            organs.forEach(row => {
+                const timeText = row.cells[5]?.textContent || '';
+                if (timeText.includes('Expired') || timeText.includes('h') && parseInt(timeText) < 2) {
+                    alertCount++;
+                }
+            });
+            
+            if (alertCount > 0) {
+                showAlert(`${alertCount} organ(s) expiring soon or expired!`, 'warning');
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 fade-in ${
+                type === 'warning' ? 'bg-red-500' : 
+                type === 'success' ? 'bg-green-500' : 'bg-blue-500'
+            } text-white font-semibold`;
+            alertDiv.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas ${
+                        type === 'warning' ? 'fa-exclamation-triangle' : 
+                        type === 'success' ? 'fa-check-circle' : 'fa-info-circle'
+                    }"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+                alertDiv.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => alertDiv.remove(), 500);
+            }, 5000);
+        }
+
+        // Check for expiring organs every 30 seconds
+        setInterval(checkExpiringOrgans, 30000);
+    </script>
+</body>
+</html>

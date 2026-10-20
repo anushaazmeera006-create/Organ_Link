@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Organ Donation Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Auth Section -->
+    <div id="auth-section" class="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
+        <!-- Login Form -->
+        <div id="login-form">
+            <h2 class="text-2xl font-bold mb-4">Login</h2>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <input id="email" type="email" placeholder="Email" required class="w-full p-2 border">
+                <input id="pass" type="password" placeholder="Password" required class="w-full p-2 border">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded w-full">Login</button>
+            </form>
+            <button onclick="showRegisterForm()" class="mt-4 text-sm text-blue-500 underline w-full">Don't have an account? Register</button>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="hidden">
+            <h2 class="text-2xl font-bold mb-4">Register</h2>
+            <form onsubmit="handleRegister(event)" class="space-y-4">
+                <input id="reg-email" type="email" placeholder="Email" required class="w-full p-2 border">
+                <input id="reg-password" type="password" placeholder="Password" required class="w-full p-2 border">
+                <input id="reg-confirm-password" type="password" placeholder="Confirm Password" required class="w-full p-2 border">
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded flex-1">Register</button>
+                    <button type="button" onclick="showLoginForm()" class="bg-gray-500 text-white px-4 py-2 rounded flex-1">Back to Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (Hidden by default) -->
+    <div id="main-section" class="hidden">
+        <nav class="bg-blue-600 text-white p-4 flex gap-4">
+            <button onclick="showPage('donors')">Donors</button>
+            <button onclick="showPage('recipients')">Recipients</button>
+            <button onclick="showPage('organs')">Organs</button>
+            <button onclick="showPage('matching')">Matching</button>
+            <button onclick="logout()" class="ml-auto">Logout</button>
+        </nav>
+
+        <div class="p-8">
+            <div id="page-donors" class="page">
+                <h1 class="text-2xl font-bold mb-4">Donors</h1>
+                <form onsubmit="addDonor(event)" class="my-4 bg-white p-4 rounded shadow">
+                    <div class="grid grid-cols-5 gap-2">
+                        <input name="name" placeholder="Name" required class="p-2 border">
+                        <input name="age" type="number" placeholder="Age" required class="p-2 border">
+                        <select name="gender" class="p-2 border"><option>Male</option><option>Female</option></select>
+                        <select name="blood_group" class="p-2 border"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select>
+                        <input name="phone" placeholder="Phone" class="p-2 border">
+                    </div>
+                    <button type="submit" class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Add Donor</button>
+                </form>
+                
+                <!-- Add Organ Section -->
+                <div class="my-4 bg-white p-4 rounded shadow">
+                    <h3 class="font-bold mb-2">Add Organ for Donor</h3>
+                    <form onsubmit="addOrganFromForm(event)" class="flex gap-2">
+                        <select name="donor_id" id="donor-select" class="p-2 border">
+                            <option value="">Select Donor</option>
+                        </select>
+                        <select name="organ_type" class="p-2 border">
+                            <option value="Kidney">Kidney</option>
+                            <option value="Heart">Heart</option>
+                            <option value="Liver">Liver</option>
+                        </select>
+                        <button type="submit" class="bg-purple-500 text-white px-4 py-2 rounded">Add Organ</button>
+                    </form>
+                </div>
+                
+                <div class="mt-4 bg-white rounded shadow overflow-hidden">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blood Group</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donor-list" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="page-recipients" class="page hidden">
+                <h1 class="text-2xl font-bold mb-4">Recipients</h1>
+                <form onsubmit="addRecipient(event)" class="my-4 bg-white p-4 rounded shadow">
+                    <div class="grid grid-cols-5 gap-2">
+                        <input name="name" placeholder="Name" required class="p-2 border">
+                        <input name="age" type="number" placeholder="Age" required class="p-2 border">
+                        <select name="gender" class="p-2 border"><option>Male</option><option>Female</option></select>
+                        <select name="blood_group" class="p-2 border"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select>
+                        <input name="phone" placeholder="Phone" class="p-2 border">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mt-2">
+                        <select name="organ_needed" class="p-2 border"><option>Kidney</option><option>Heart</option><option>Liver</option></select>
+                        <select name="urgency" class="p-2 border"><option value="1">Low (1)</option><option value="2">Medium (2)</option><option value="3">High (3)</option><option value="4">Critical (4)</option><option value="5">Emergency (5)</option></select>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Recipient</button>
+                    </div>
+                </form>
+                <div class="mt-4 bg-white rounded shadow overflow-hidden">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blood Group</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organ Needed</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Urgency</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recipient-list" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="page-organs" class="page hidden">
+                <h1 class="text-2xl font-bold mb-4">Available Organs</h1>
+                <div class="mt-4 bg-white rounded shadow overflow-hidden">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organ ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organ Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody id="organ-list" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="page-matching" class="page hidden text-center">
+                <h1 class="text-2xl font-bold mb-4">Organ Allocation</h1>
+                <button onclick="runMatch()" class="bg-red-500 text-white px-8 py-4 rounded-full text-xl shadow-lg hover:bg-red-600">Run Matching Algorithm</button>
+                <div id="match-result" class="mt-4 font-bold text-lg"></div>
+                <h2 class="mt-8 text-xl">Potential Matches</h2>
+                <div class="mt-4 bg-white rounded shadow overflow-hidden">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organ Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Donor Age</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blood Group</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient Age</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Urgency</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age Difference</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="potential-list" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        if(token) showDashboard();
+
+        // Form switching functions
+        function showRegisterForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        }
+
+        function showLoginForm() {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        }
+
+        // Form validation functions
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        // Authentication functions with validation
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('pass').value;
+            
+            // Validation
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            if (!password) {
+                alert('Please enter your password');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                const data = await res.json();
+                
+                if(data.token) {
+                    localStorage.setItem('token', data.token);
+                    showDashboard();
+                } else {
+                    alert(data.error || 'Login failed. Please check your credentials.');
+                }
+            } catch (error) {
+                alert('Login failed. Please try again.');
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+            
+            // Validation
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            if (!password) {
+                alert('Please enter a password');
+                return;
+            }
+            
+            if (!validatePassword(password)) {
+                alert('Password must be at least 6 characters long');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alert('Registration successful! Please login.');
+                    showLoginForm();
+                    // Clear form
+                    document.getElementById('reg-email').value = '';
+                    document.getElementById('reg-password').value = '';
+                    document.getElementById('reg-confirm-password').value = '';
+                } else {
+                    alert(data.error || 'Registration failed. Please try again.');
+                }
+            } catch (error) {
+                alert('Registration failed. Please try again.');
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('main-section').classList.remove('hidden');
+            showPage('donors');
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-' + page).classList.remove('hidden');
+            if(page === 'donors') loadDonors();
+            if(page === 'recipients') loadRecipients();
+            if(page === 'organs') loadOrgans();
+            if(page === 'matching') loadPotentialMatches();
+        }
+
+        async function loadDonors() {
+            const res = await fetch('/api/donors', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+            const data = await res.json();
+            document.getElementById('donor-list').innerHTML = data.map(d => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${d.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.age}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.gender}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            ${d.blood_group}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${d.phone}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            ${d.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="addOrgan(${d.donor_id})" class="text-blue-600 hover:text-blue-900">Add Organ</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Populate donor select dropdown for organ addition
+            document.getElementById('donor-select').innerHTML = '<option value="">Select Donor</option>' + 
+                data.map(d => `<option value="${d.donor_id}">${d.name} (${d.blood_group})</option>`).join('');
+        }
+
+        async function addDonor(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const donor = {
+                name: formData.get('name').trim(),
+                age: parseInt(formData.get('age')),
+                gender: formData.get('gender'),
+                blood_group: formData.get('blood_group'),
+                phone: formData.get('phone').trim()
+            };
+            
+            // Validation
+            if (!donor.name) {
+                alert('Please enter donor name');
+                return;
+            }
+            
+            if (!donor.age || donor.age < 1 || donor.age > 120) {
+                alert('Please enter a valid age (1-120)');
+                return;
+            }
+            
+            if (!donor.phone) {
+                alert('Please enter phone number');
+                return;
+            }
+            
+            try {
+                // Check for duplicate donor
+                const res = await fetch('/api/donors', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+                const existingDonors = await res.json();
+                
+                const isDuplicate = existingDonors.some(d => 
+                    d.name.toLowerCase() === donor.name.toLowerCase() && 
+                    d.phone === donor.phone
+                );
+                
+                if (isDuplicate) {
+                    alert('A donor with this name and phone number already exists!');
+                    return;
+                }
+                
+                // Add donor
+                const addRes = await fetch('/api/donors', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token')},
+                    body: JSON.stringify(donor)
+                });
+                
+                if (addRes.ok) {
+                    event.target.reset();
+                    loadDonors();
+                    alert("Donor Added!");
+                } else {
+                    const errorData = await addRes.json();
+                    alert(errorData.error || 'Failed to add donor');
+                }
+            } catch (error) {
+                alert('Failed to add donor. Please try again.');
+            }
+        }
+
+        async function addRecipient(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const recipient = {
+                name: formData.get('name').trim(),
+                age: parseInt(formData.get('age')),
+                gender: formData.get('gender'),
+                blood_group: formData.get('blood_group'),
+                phone: formData.get('phone').trim(),
+                organ_needed: formData.get('organ_needed'),
+                urgency: parseInt(formData.get('urgency'))
+            };
+            
+            // Validation
+            if (!recipient.name) {
+                alert('Please enter recipient name');
+                return;
+            }
+            
+            if (!recipient.age || recipient.age < 1 || recipient.age > 120) {
+                alert('Please enter a valid age (1-120)');
+                return;
+            }
+            
+            if (!recipient.phone) {
+                alert('Please enter phone number');
+                return;
+            }
+            
+            if (!recipient.organ_needed) {
+                alert('Please select organ needed');
+                return;
+            }
+            
+            if (!recipient.urgency || recipient.urgency < 1 || recipient.urgency > 5) {
+                alert('Please select urgency level');
+                return;
+            }
+            
+            try {
+                // Check for duplicate recipient
+                const res = await fetch('/api/recipients', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+                const existingRecipients = await res.json();
+                
+                const isDuplicate = existingRecipients.some(r => 
+                    r.name.toLowerCase() === recipient.name.toLowerCase() && 
+                    r.phone === recipient.phone &&
+                    r.organ_needed === recipient.organ_needed
+                );
+                
+                if (isDuplicate) {
+                    alert('A recipient with this name, phone number, and organ needed already exists!');
+                    return;
+                }
+                
+                // Add recipient
+                const addRes = await fetch('/api/recipients', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token')},
+                    body: JSON.stringify(recipient)
+                });
+                
+                if (addRes.ok) {
+                    event.target.reset();
+                    loadRecipients();
+                    alert("Recipient Added!");
+                } else {
+                    const errorData = await addRes.json();
+                    alert(errorData.error || 'Failed to add recipient');
+                }
+            } catch (error) {
+                alert('Failed to add recipient. Please try again.');
+            }
+        }
+
+        async function loadRecipients() {
+            const res = await fetch('/api/recipients', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+            const data = await res.json();
+            document.getElementById('recipient-list').innerHTML = data.map(r => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${r.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${r.age}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${r.gender}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            ${r.blood_group}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${r.organ_needed}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            r.urgency_level >= 4 ? 'bg-red-100 text-red-800' : 
+                            r.urgency_level >= 3 ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-green-100 text-green-800'
+                        }">
+                            ${r.urgency_level}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            r.status === 'waiting' ? 'bg-blue-100 text-blue-800' : 
+                            r.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                            'bg-gray-100 text-gray-800'
+                        }">
+                            ${r.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadOrgans() {
+            const res = await fetch('/api/organs', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+            const organs = await res.json();
+            
+            // Get donor data for name lookup
+            const donorsRes = await fetch('/api/donors', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+            const donors = await donorsRes.json();
+            
+            // Create donor lookup map
+            const donorMap = {};
+            donors.forEach(d => {
+                donorMap[d.donor_id] = d.name;
+            });
+            
+            const currentTime = new Date();
+            document.getElementById('organ-list').innerHTML = organs.map(o => {
+                const expiryTime = new Date(o.expiry_time);
+                const timeRemaining = expiryTime - currentTime;
+                const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
+                const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                
+                let timeRemainingText = '';
+                let timeClass = '';
+                if (timeRemaining <= 0) {
+                    timeRemainingText = 'Expired';
+                    timeClass = 'text-red-600 font-bold';
+                } else if (hoursRemaining < 2) {
+                    timeRemainingText = `${hoursRemaining}h ${minutesRemaining}m`;
+                    timeClass = 'text-red-500 font-semibold';
+                } else if (hoursRemaining < 6) {
+                    timeRemainingText = `${hoursRemaining}h ${minutesRemaining}m`;
+                    timeClass = 'text-yellow-600';
+                } else {
+                    timeRemainingText = `${hoursRemaining}h ${minutesRemaining}m`;
+                    timeClass = 'text-green-600';
+                }
+                
+                const donorName = donorMap[o.donor_id] || `Donor ${o.donor_id}`;
+                
+                return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${o.organ_id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                            ${o.organ_type}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${donorName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            o.availability_status === 'available' ? 'bg-green-100 text-green-800' : 
+                            o.availability_status === 'allocated' ? 'bg-blue-100 text-blue-800' : 
+                            'bg-red-100 text-red-800'
+                        }">
+                            ${o.availability_status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${expiryTime.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${timeClass}">${timeRemainingText}</td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        async function addOrganFromForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const organ = {
+                donor_id: parseInt(formData.get('donor_id')),
+                organ_type: formData.get('organ_type')
+            };
+            
+            // Validation
+            if (!organ.donor_id) {
+                alert('Please select a donor');
+                return;
+            }
+            
+            if (!organ.organ_type) {
+                alert('Please select organ type');
+                return;
+            }
+            
+            try {
+                // Check for duplicate organ
+                const res = await fetch('/api/organs', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+                const existingOrgans = await res.json();
+                
+                const isDuplicate = existingOrgans.some(o => 
+                    o.donor_id === organ.donor_id && 
+                    o.organ_type === organ.organ_type &&
+                    o.availability_status === 'available'
+                );
+                
+                if (isDuplicate) {
+                    alert('This donor already has an available organ of this type!');
+                    return;
+                }
+                
+                // Add organ
+                const addRes = await fetch('/api/organs', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token')},
+                    body: JSON.stringify(organ)
+                });
+                
+                if (addRes.ok) {
+                    event.target.reset();
+                    loadOrgans();
+                    loadDonors();
+                    alert("Organ Added!");
+                } else {
+                    const errorData = await addRes.json();
+                    alert(errorData.error || 'Failed to add organ');
+                }
+            } catch (error) {
+                alert('Failed to add organ. Please try again.');
+            }
+        }
+
+        async function addOrgan(id) {
+            const type = prompt("Organ Type (Heart, Liver, Kidney)?");
+            if(!type) return;
+            
+            // Validate organ type
+            const validTypes = ['Heart', 'Liver', 'Kidney'];
+            if (!validTypes.includes(type)) {
+                alert('Invalid organ type. Please choose Heart, Liver, or Kidney.');
+                return;
+            }
+            
+            try {
+                // Check for duplicate organ
+                const res = await fetch('/api/organs', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+                const existingOrgans = await res.json();
+                
+                const isDuplicate = existingOrgans.some(o => 
+                    o.donor_id === id && 
+                    o.organ_type === type &&
+                    o.availability_status === 'available'
+                );
+                
+                if (isDuplicate) {
+                    alert('This donor already has an available organ of this type!');
+                    return;
+                }
+                
+                const addRes = await fetch('/api/organs', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token')},
+                    body: JSON.stringify({donor_id: id, organ_type: type})
+                });
+                
+                if (addRes.ok) {
+                    loadOrgans();
+                    loadDonors();
+                    alert("Organ Added!");
+                } else {
+                    const errorData = await addRes.json();
+                    alert(errorData.error || 'Failed to add organ');
+                }
+            } catch (error) {
+                alert('Failed to add organ. Please try again.');
+            }
+        }
+
+        async function runMatch() {
+            const res = await fetch('/api/run-match', {
+                method: 'POST',
+                headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}
+            });
+            const data = await res.json();
+            document.getElementById('match-result').innerText = data.result === 'SUCCESS' ? "✅ Match Found and Allocated!" : "❌ No Compatible Match Found.";
+            loadPotentialMatches();
+        }
+
+        async function loadPotentialMatches() {
+            const res = await fetch('/api/potential-matches', {headers: {'Authorization': 'Bearer ' + localStorage.getItem('token')}});
+            const data = await res.json();
+            document.getElementById('potential-list').innerHTML = data.map(m => {
+                const expiryTime = new Date(m.expiry_time);
+                const currentTime = new Date();
+                const timeRemaining = expiryTime - currentTime;
+                const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
+                const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                
+                let urgencyClass = '';
+                let urgencyText = m.urgency_level;
+                if (m.urgency_level >= 4) {
+                    urgencyClass = 'bg-red-100 text-red-800';
+                    urgencyText = `${m.urgency_level} (Critical)`;
+                } else if (m.urgency_level >= 3) {
+                    urgencyClass = 'bg-yellow-100 text-yellow-800';
+                    urgencyText = `${m.urgency_level} (High)`;
+                } else {
+                    urgencyClass = 'bg-green-100 text-green-800';
+                    urgencyText = `${m.urgency_level} (Normal)`;
+                }
+                
+                return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                            ${m.organ_type}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${m.donor_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.donor_age}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            ${m.blood_group}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${m.recipient_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.recipient_age}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${urgencyClass}">
+                            ${urgencyText}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="${m.age_diff > 15 ? 'text-red-600 font-semibold' : m.age_diff > 10 ? 'text-yellow-600' : 'text-green-600'}">
+                            ${m.age_diff} years
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span class="${hoursRemaining < 2 ? 'text-red-600 font-semibold' : hoursRemaining < 6 ? 'text-yellow-600' : 'text-green-600'}">
+                            ${hoursRemaining}h ${minutesRemaining}m
+                        </span>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        function logout() { localStorage.clear(); location.reload(); }
+    </script>
+</body>
+</html>
