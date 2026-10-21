@@ -76,7 +76,17 @@ app.post('/api/recipients', async (req, res) => {
 // --- Organ Routes ---
 app.post('/api/organs', async (req, res) => {
     const { donor_id, organ_type } = req.body;
-    let hours = organ_type === 'Heart' ? 6 : organ_type === 'Liver' ? 12 : 24;
+    let hours;
+    switch(organ_type) {
+        case 'Heart': hours = 6; break;
+        case 'Lungs': hours = 6; break;
+        case 'Liver': hours = 12; break;
+        case 'Pancreas': hours = 12; break;
+        case 'Kidney': hours = 24; break;
+        case 'Intestine': hours = 24; break;
+        case 'Cornea': hours = 48; break;
+        default: hours = 24;
+    }
     await db.query("INSERT INTO organ (donor_id, organ_type, expiry_time) VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '1 hour' * $3)", [donor_id, organ_type, hours]);
     res.json({ message: "Organ added" });
 });

@@ -75,12 +75,26 @@ async function addSampleData() {
             { donor_id: 1, organ_type: 'Kidney' },
             { donor_id: 1, organ_type: 'Liver' },
             { donor_id: 2, organ_type: 'Heart' },
+            { donor_id: 2, organ_type: 'Lungs' },
             { donor_id: 3, organ_type: 'Kidney' },
-            { donor_id: 4, organ_type: 'Liver' }
+            { donor_id: 3, organ_type: 'Pancreas' },
+            { donor_id: 4, organ_type: 'Liver' },
+            { donor_id: 4, organ_type: 'Intestine' },
+            { donor_id: 5, organ_type: 'Cornea' }
         ];
 
         for (const organ of initialOrgans) {
-            let hours = organ.organ_type === 'Heart' ? 6 : organ.organ_type === 'Liver' ? 12 : 24;
+            let hours;
+            switch(organ.organ_type) {
+                case 'Heart': hours = 6; break;
+                case 'Lungs': hours = 6; break;
+                case 'Liver': hours = 12; break;
+                case 'Pancreas': hours = 12; break;
+                case 'Kidney': hours = 24; break;
+                case 'Intestine': hours = 24; break;
+                case 'Cornea': hours = 48; break;
+                default: hours = 24;
+            }
             await pool.query(
                 "INSERT INTO organ (donor_id, organ_type, expiry_time) VALUES ($1, $2, NOW() + INTERVAL '1 hour' * $3) ON CONFLICT DO NOTHING",
                 [organ.donor_id, organ.organ_type, hours]
